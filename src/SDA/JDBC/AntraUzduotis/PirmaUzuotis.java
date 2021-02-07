@@ -12,61 +12,24 @@ public class PirmaUzuotis {
         try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD)) {
             MovieDAO movieDAO = new MovieDAOImpl(conn);
             movieDAO.createTable();
+            //movieDAO.deleteTable();
 
-            createMovie("Interstellar", "Animation", 2003, conn);
-            createMovie("100", "Animation", 2003, conn);
-            createMovie("1001", "Action", 2014, conn);
+            movieDAO.createMovie(new Movie("Interstelar", "Action", 2000));
+            movieDAO.createMovie(new Movie("100", "Animation", 2003));
+            movieDAO.createMovie(new Movie("1001", "Action", 2014));
 
             System.out.println("Prieš:");
-            printMovies(conn);
-
-            try (PreparedStatement updateMovie = conn.prepareStatement("UPDATE MOVIES SET title = ? WHERE id = ?")) {
-                updateMovie.setString(1, "A.I.");
-                updateMovie.setInt(2, 1);
-                updateMovie.execute();
-            }
+            movieDAO.findAll().forEach(System.out::println);
+            movieDAO.updateMoviesTitle(1, "A.I");
 
             System.out.println("Po:");
-            deleteMovie(2, conn);
-            printMovies(conn);
+            movieDAO.deleteMovie(2);
+            movieDAO.findAll().forEach(System.out::println);
+
+            System.out.println(movieDAO.findMovieById(3).get());
 
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
     }
-
-    private static void printMovies(Connection conn) throws SQLException {
-        try (Statement selectMovies = conn.createStatement()) {
-            ResultSet resultSet = selectMovies.executeQuery("SELECT * FROM MOVIES");
-            while (resultSet.next()) {
-                int id = resultSet.getInt("id");
-                String title = resultSet.getString("title");
-                String genre = resultSet.getString("genre");
-                int yearOfRelease = resultSet.getInt("yearOfRelease");
-                System.out.println("id: " + id + "; title: " + title + "; genre " + genre + "; year of release:" + yearOfRelease);
-            }
-        }
-    }
-
-    private static void createMovie(String title, String genre, int yearOfRelease, Connection conn) {
-        try (PreparedStatement insertMovie = conn.prepareStatement("INSERT INTO MOVIES (title, genre, yearOfRelease) VALUES (?, ?, ?)")) {
-            insertMovie.setString(1, title);
-            insertMovie.setString(2, genre);
-            insertMovie.setInt(3, yearOfRelease);
-            insertMovie.execute();
-        } catch (SQLException e) { //rekomenduojama
-            System.out.println(e.getMessage());
-        }
-    }
-
-    private static void deleteMovie(int id, Connection conn) {
-        try (PreparedStatement deleteMovie = conn.prepareStatement("DELETE FROM MOVIES WHERE id = ?")) {
-            deleteMovie.setInt(1, id);
-            deleteMovie.execute();
-        } catch (SQLException e) { //rekomenduojama
-            System.out.println(e.getMessage());
-        }
-    }
-
-
 }
